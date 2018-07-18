@@ -54,6 +54,25 @@ UKF::UKF() {
 
   Hint: one or more values initialized above might be wildly off...
   */
+  
+  
+  //set state dimension
+  int n_x = 5;
+
+  //set augmented dimension
+  int n_aug = 7;
+
+  //Process noise standard deviation longitudinal acceleration in m/s^2
+  //double std_a = 0.2;
+
+  //Process noise standard deviation yaw acceleration in rad/s^2
+  //double std_yawdd = 0.2;
+
+  //define spreading parameter
+  double lambda = 3 - n_aug;
+  
+  
+  
 }
 
 UKF::~UKF() {}
@@ -69,6 +88,69 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   Complete this function! Make sure you switch between lidar and radar
   measurements.
   */
+  
+    if (!is_initialized_) {
+    /**
+      * Initialize the state x_ with the first measurement.
+      * Create the covariance matrix.
+      * Remember: you'll need to convert radar from polar to cartesian coordinates.
+    */
+      
+    P_ << MatrixXd::Identity(5, 5) << endl;
+
+      
+    // first measurement
+    cout << "UKF: " << endl;
+    
+    x_ << 0, 0, 0, 0, 0;
+
+      
+      
+      
+    if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+      /**
+      Convert radar from polar to cartesian coordinates and initialize state.
+      */
+	    
+      float rho =  measurement_pack.raw_measurements_(0);
+      float phi =  measurement_pack.raw_measurements_(1);
+      float rho_dot =  measurement_pack.raw_measurements_(2);
+
+
+      x_(0) = rho * cos(phi);
+      x_(1) = rho * sin(phi);
+      float vx = rho_dot * cos(phi);
+      float vy = rho_dot * sin(phi);
+      x_(2) = sqrt(vx * vx + vy * vy)
+      
+      
+
+    }
+    else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
+        /**
+        Initialize state.
+        */
+        x_(0) = measurement_pack.raw_measurements_(0);
+        x_(1) = measurement_pack.raw_measurements_(1);
+    }
+
+	previous_timestamp_ = measurement_pack.timestamp_ ;
+
+      
+  //set vector for weights
+  weights_ = VectorXd(2*n_aug+1);
+   double weight_0 = lambda/(lambda+n_aug);
+  weights_(0) = weight_0;
+  for (int i=1; i<2*n_aug+1; i++) {  //2n+1 weights
+    double weight = 0.5/(n_aug+lambda);
+    weights_(i) = weight;
+  }
+      
+    // done initializing, no need to predict or update
+    is_initialized_ = true;
+    return;
+  
+  
 }
 
 /**
@@ -113,4 +195,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the radar NIS.
   */
+  
+  
+  
 }
