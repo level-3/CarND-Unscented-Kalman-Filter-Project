@@ -70,8 +70,17 @@ UKF::UKF() {
   //define spreading parameter
   double lambda = 3 - n_aug;
   
-  
-  
+    //set vector for weights
+  weights_ = VectorXd(2*n_aug+1);
+   double weight_0 = lambda/(lambda+n_aug);
+  weights_(0) = weight_0;
+  for (int i=1; i<2*n_aug+1; i++) {  //2n+1 weights
+    double weight = 0.5/(n_aug+lambda);
+    weights_(i) = weight;
+  }
+   
+    P_ << MatrixXd::Identity(5, 5) ;
+
 }
 
 UKF::~UKF() {}
@@ -94,57 +103,43 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       * Create the covariance matrix.
       * Remember: you'll need to convert radar from polar to cartesian coordinates.
     */
-      
-    P_ << MatrixXd::Identity(5, 5) << endl;
-
-      
+ 
     // first measurement
     cout << "UKF: " << endl;
     
     x_ << 0, 0, 0, 0, 0;
 
-      
-      
-      
-    if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+    if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
 	    
-      float rho =  measurement_pack.raw_measurements_(0);
-      float phi =  measurement_pack.raw_measurements_(1);
-      float rho_dot =  measurement_pack.raw_measurements_(2);
+      float rho =  meas_package.raw_measurements_(0);
+      float phi =  meas_package.raw_measurements_(1);
+      float rho_dot =  meas_package.raw_measurements_(2);
 
 
       x_(0) = rho * cos(phi);
       x_(1) = rho * sin(phi);
       float vx = rho_dot * cos(phi);
       float vy = rho_dot * sin(phi);
-      x_(2) = sqrt(vx * vx + vy * vy)
+      x_(2) = sqrt(vx * vx + vy * vy);
       
       
 
     }
-    else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
+    else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
         /**
         Initialize state.
         */
-        x_(0) = measurement_pack.raw_measurements_(0);
-        x_(1) = measurement_pack.raw_measurements_(1);
+        x_(0) = meas_package.raw_measurements_(0);
+        x_(1) = meas_package.raw_measurements_(1);
     }
 
-	previous_timestamp_ = measurement_pack.timestamp_ ;
+    }
 
-      
-  //set vector for weights
-  weights_ = VectorXd(2*n_aug+1);
-   double weight_0 = lambda/(lambda+n_aug);
-  weights_(0) = weight_0;
-  for (int i=1; i<2*n_aug+1; i++) {  //2n+1 weights
-    double weight = 0.5/(n_aug+lambda);
-    weights_(i) = weight;
-  }
-      
+	  float previous_timestamp_ = meas_package.timestamp_ ;
+
     // done initializing, no need to predict or update
     is_initialized_ = true;
     return;
@@ -164,6 +159,7 @@ void UKF::Prediction(double delta_t) {
   Complete this function! Estimate the object's location. Modify the state
   vector, x_. Predict sigma points, the state, and the state covariance matrix.
   */
+
 }
 
 /**
